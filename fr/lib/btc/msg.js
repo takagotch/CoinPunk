@@ -1,14 +1,23 @@
-var Crypto = require();
-var ecdsa = require();
-var conv = require();
-var util = require();
+var Crypto = require('./crypto-js/crypto');
+var ecdsa = require('./ecdsa');
+var conv = require('./convert');
+var util = require('./util');
 
 var Message = {};
 
 Message.magicPrefix = "Bitcoin Signed Message:\n";
 
 Message.makeMagicMessage = function (message) {
+  var magicBytes = Crypto.charenc.UTF8.stringToBytes(Message.magicPrefix);
+  var messageBytes = Crypto.charenc.UTF8.stringToBytes(message);
 
+  var buffer = [];
+  buffer = buffer.concat(util.numToVarInt(magicBytes.length));
+  buffer = buffer.concat(magicBytes);
+  buffer = buffer.concat(util.numToVarInt(messageBytes.length));
+  buffer = buffer.concat(messageBytes);
+
+  return buffer;
 };
 
 Message.getHash = function (message) {
