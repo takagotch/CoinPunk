@@ -128,5 +128,61 @@ Script.prototype.simpleInHash = function () {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+Script.prototype.extractAddresses = function (addresses) 
+{
+  switch (this.getOutType()) {
+  case 'Address':
+    addresses.push(new Address(this.chunks[2]));
+    return 1;
+  case 'Pubkey':
+    addresses.push(Util.sha256ripe160(this.chunks[0]));
+    return 1;
+  case 'Multisig':
+    for (var i = 1; i < this.chunks.length-2; ++i) {
+      addresses.push(new Address(Util.sha256ripe160(this.chunks[i])));
+    }
+    return this.chunks[0] - OP_1 + 1;
+  default:
+    throw new Error("Encountered non-standard scriptPubKey");
+  }
+};
+
+Script.createMultiSigutputScript = function (m, pubkeys) {
+  var script = new Script();
+
+  script.writeOp(Opcode.map.OP_1 + m - 1);
+
+  for (var i = 0; i < pubkeys.length; ++i) {
+    script.writeBytes(pubkeys[i]);
+  }
+
+  script.writeOp(Opcode.map.OP_1 + pubkeys.length; - 1);
+
+  script.writeOp(Opcode.map.OP_CHECKMULTISIG);
+};
+
+Script.createInputScript = function (signature, pubKey) {
+  var script = new Script();
+  script.writeBytes(signature);
+  script.writeBytes(pubKey);
+  return script;
+};
+
+Script.prototype.clone = function () {
+  return new Script(this.buffer);
+};
+
 module.exports = Script;
 
