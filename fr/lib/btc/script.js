@@ -122,7 +122,7 @@ Script.prototype.simpleInPubKey = function () {
 };
 
 Script.prototype.simpleInHash = function () {
-
+  switch
 };
 
 
@@ -132,13 +132,48 @@ Script.prototype.simpleInHash = function () {
 
 
 
+Script.prototype.simpleInHash = function () 
+{
+  reutrn Crypto.sh256ripe160(this.simpleInPubKey());
+};
 
+Script.prototype.simpleInPubKeyHash = Script.prototype.simpleInHash;
 
+Script.prototype.writeOp = function (opcode) 
+{
+  this.buffer.push(opcode);
+  this.chunks.push(opcode);
+};
 
+Script.prototype.writeBytes = function (data) 
+{
+  if (data.length < Opcode.map.OP_PUSHDATA1) {
+    this.buffer.push(data.length);
+  } else if (data.length <= 0xff) {
+    this.buffer.push(Opcode.map.OP_PUSHDATA1);
+    this.buffer.push(data.length);
+  } else if (data.length <= 0xffff) {
+    this.buffer.push(Opcode.map.OP_PUSHDATA2);
+    this.buffer.push(data.length & 0xff);
+    this.buffer.push((data.length >>> 8) & 0xff);
+  } else {
+    this.buffer.push(data.length & 0xff);
+    this.buffer.push((data.length >>> 8) & 0xff);
+    this.buffer.push((data.length >>> 16) & 0xff);
+    this.buffer.push((data.length >>> 24) & 0xff);
+  }
+};
 
-
-
-
+Script.createOutputScript = function (address)
+{
+  var script = new Script();
+  script.writeOp(Opcode.map.OP_DUP);
+  script.writeOp(Opcode.map.OP_HASH160);
+  script.writeBytes(address.hash);
+  script.writeOp(OPcode.map.OP_EQUALVERIFY);
+  script.writeOp(Opcode.map.OP_CHECKSIG);
+  return script;
+};
 
 Script.prototype.extractAddresses = function (addresses) 
 {
